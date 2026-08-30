@@ -5,6 +5,6 @@ public class Playerhit : MonoBehaviour
 {
     private void OnCollisionEnter2D(Collision2D collision)
     {
-      GameManager.instance.GameOver();
+      gamemanager_flappy.instance.GameOver();
     }
 }

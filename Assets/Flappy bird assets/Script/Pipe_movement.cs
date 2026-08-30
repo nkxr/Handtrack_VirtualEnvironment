@@ -8,7 +8,7 @@ public class Pipe_movement : MonoBehaviour
 
     void Update()
     {
-        float speed = GameManager.instance != null ? GameManager.instance.PipeSpeed : FallbackSpeed;
+        float speed = gamemanager_flappy.instance != null ? gamemanager_flappy.instance.PipeSpeed : FallbackSpeed;
         transform.position += Vector3.left * speed * Time.deltaTime;
 
         if (transform.position.x < -10f)

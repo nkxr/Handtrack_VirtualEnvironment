@@ -6,6 +6,6 @@ public class scoretrigger : MonoBehaviour
 {
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        GameManager.instance.addScore();
+        gamemanager_flappy.instance.addScore();
     }
 }

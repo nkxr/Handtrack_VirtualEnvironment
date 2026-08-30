@@ -33,15 +33,15 @@ public class Pipe_spawner : MonoBehaviour
 
     void Update()
     {
-        if (GameManager.instance == null || spawningPaused)
+        if (gamemanager_flappy.instance == null || spawningPaused)
             return;
 
-        int pipesPerWave = GameManager.instance.PipesPerWave;
+        int pipesPerWave = gamemanager_flappy.instance.PipesPerWave;
         if (pipesSpawnedThisWave >= pipesPerWave)
             return;
 
-        distanceSinceLastSpawn += GameManager.instance.PipeSpeed * Time.deltaTime;
-        if (distanceSinceLastSpawn >= GameManager.instance.PipeSpacing)
+        distanceSinceLastSpawn += gamemanager_flappy.instance.PipeSpeed * Time.deltaTime;
+        if (distanceSinceLastSpawn >= gamemanager_flappy.instance.PipeSpacing)
         {
             distanceSinceLastSpawn = 0f;
             Spawn_Pipe();

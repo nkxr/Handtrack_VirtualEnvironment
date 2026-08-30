@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-public class GameManager : MonoBehaviour
+public class gamemanager_flappy : MonoBehaviour
 {
-    public static GameManager instance {get; private set;}
+    public static gamemanager_flappy instance {get; private set;}
 
     private const  string HighScoreKey = "Highscore";
 

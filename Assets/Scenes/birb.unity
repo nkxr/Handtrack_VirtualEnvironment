@@ -1444,7 +1444,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2036668548}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_TargetAssemblyTypeName: gamemanager_flappy, Assembly-CSharp
         m_MethodName: StartGame
         m_Mode: 1
         m_Arguments:
