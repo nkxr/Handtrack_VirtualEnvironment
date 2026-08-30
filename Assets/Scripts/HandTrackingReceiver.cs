@@ -28,6 +28,8 @@ public class HandTrackingReceiver : MonoBehaviour
     public float positionScale = 0.01f;
     [Tooltip("จุดกึ่งกลางเฟรมกล้อง (กว้าง, สูง) ใช้เลื่อน landmark ให้อยู่รอบจุด origin ของวัตถุนี้")]
     public Vector2 frameCenter = new Vector2(640f, 360f);
+    [Tooltip("กลับแกน X ให้เหมือนกระจก (ยกมือซ้ายจริง แล้วเห็นวัตถุขยับไปทางซ้ายของจอด้วย) — กล้องเว็บแคมปกติไม่ได้ถูกกลับภาพมาก่อน ถ้าไม่ติ๊กตรงนี้ยกมือซ้ายจะไปโผล่ฝั่งขวาแทน")]
+    public bool mirrorX = true;
     [Tooltip("ถ้าไม่มีข้อมูลใหม่เข้ามานานเกินนี้ (วินาที) จะซ่อน marker ทั้งหมด")]
     public float dataTimeout = 0.5f;
 
@@ -175,8 +177,10 @@ public class HandTrackingReceiver : MonoBehaviour
             float y = data[i * 3 + 1];
             float z = data[i * 3 + 2];
 
+            float signedX = mirrorX ? (frameCenter.x - x) : (x - frameCenter.x);
+
             Vector3 localPos = new Vector3(
-                (x - frameCenter.x) * positionScale,
+                signedX * positionScale,
                 (y - frameCenter.y) * positionScale,
                 z * positionScale
             );
