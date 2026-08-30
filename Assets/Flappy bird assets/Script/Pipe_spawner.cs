@@ -5,13 +5,51 @@ using UnityEngine;
 public class Pipe_spawner : MonoBehaviour
 {
     [SerializeField] private GameObject pipePrefab;
-    [SerializeField] private float spawnRate = 2f;
-
     [SerializeField] private float minY = -2f;
     [SerializeField] private float MaxY = -2f;
-    void Start()
+
+    private float distanceSinceLastSpawn;
+    private bool spawningPaused;
+    private int pipesSpawnedThisWave;
+
+    public void ResetSpawnTimer()
     {
-        InvokeRepeating("Spawn_Pipe", 0f, spawnRate);
+        distanceSinceLastSpawn = 0f;
+    }
+
+    public void SetSpawningPaused(bool paused)
+    {
+        spawningPaused = paused;
+        if (paused)
+            distanceSinceLastSpawn = 0f;
+    }
+
+    public void StartWave()
+    {
+        pipesSpawnedThisWave = 0;
+        distanceSinceLastSpawn = 0f;
+        spawningPaused = false;
+    }
+
+    void Update()
+    {
+        if (GameManager.instance == null || spawningPaused)
+            return;
+
+        int pipesPerWave = GameManager.instance.PipesPerWave;
+        if (pipesSpawnedThisWave >= pipesPerWave)
+            return;
+
+        distanceSinceLastSpawn += GameManager.instance.PipeSpeed * Time.deltaTime;
+        if (distanceSinceLastSpawn >= GameManager.instance.PipeSpacing)
+        {
+            distanceSinceLastSpawn = 0f;
+            Spawn_Pipe();
+            pipesSpawnedThisWave++;
+
+            if (pipesSpawnedThisWave >= pipesPerWave)
+                spawningPaused = true;
+        }
     }
 
     private void Spawn_Pipe()

@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class Pipe_movement : MonoBehaviour
 {
-    // Update is called once per frame
+    private const float FallbackSpeed = 5f;
+
     void Update()
     {
-        transform.position += Vector3.left * 5f * Time.deltaTime;
+        float speed = GameManager.instance != null ? GameManager.instance.PipeSpeed : FallbackSpeed;
+        transform.position += Vector3.left * speed * Time.deltaTime;
 
         if (transform.position.x < -10f)
         {
@@ -15,4 +17,3 @@ public class Pipe_movement : MonoBehaviour
         }
     }
 }
-
