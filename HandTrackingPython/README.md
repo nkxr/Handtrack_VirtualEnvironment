@@ -71,5 +71,5 @@ python Main.py
 - **`HandTrackingReceiver.cs`** — ใช้ใน SampleScene แสดงจุด landmark เป็นลูกบอล 21 ลูก (เครื่องมือทดสอบ)
 - **`WebcamStreamReceiver.cs`** — รับภาพสดจาก `video_streamer.py` ผ่าน TCP
 - **`FlappyHandHUD.cs`** — จอพรีวิวเล็กๆ มุมขวาบนในซีน Flappy Bird โชว์ภาพสด + สถานะท่ามือปัจจุบัน
-- **`Birb_control.cs`** (`PlayerController`) — กำมือ (fist) ครั้งใหม่ = กระโดด เหมือนกดปุ่ม Space
+- **`Birb_control.cs`** (`PlayerController`) — กำมือ (fist) ค้างไว้ = นกลอยขึ้นค้าง เหมือนกดปุ่ม Space ค้าง
   (ปุ่ม Space ยังใช้งานได้ตามปกติ เป็นแค่ทางเลือกเสริม)
