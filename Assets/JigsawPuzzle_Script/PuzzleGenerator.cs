@@ -7,10 +7,6 @@ public class PuzzleGenerator : MonoBehaviour
     public int rows = 3;
     public int cols = 3;
 
-    [Header("3D Puzzle Size")]
-    public float targetBoardWidth = 5f;
-    public float targetBoardHeight = 4f;
-
     [Header("Border Settings")]
     [Range(0.01f, 0.2f)]
     public float borderSizePercent = 0.02f;
@@ -24,11 +20,32 @@ public class PuzzleGenerator : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        float pieceWidth = targetBoardWidth / cols;
-        float pieceHeight = targetBoardHeight / rows;
+        Camera mainCam = Camera.main;
+        if (mainCam == null) return;
 
-        float startX = -targetBoardWidth / 2f + pieceWidth / 2f;
-        float startY = -targetBoardHeight / 2f + pieceHeight / 2f;
+        // --- ส่วนที่แก้ไข: คำนวณขนาดหน้าจอที่แท้จริง ไม่ว่ากล้องจะอยู่ตรงไหน ---
+        float dynamicHeight;
+
+        // เช็คว่ากล้องเป็นแบบ 2D (Orthographic) หรือ 3D (Perspective)
+        if (mainCam.orthographic)
+        {
+            dynamicHeight = 2f * mainCam.orthographicSize;
+        }
+        else
+        {
+            // คำนวณระยะห่างจากกล้อง ถึงจุดศูนย์กลาง (Z=0)
+            float distance = Mathf.Abs(mainCam.transform.position.z);
+            dynamicHeight = 2.0f * distance * Mathf.Tan(mainCam.fieldOfView * 0.5f * Mathf.Deg2Rad);
+        }
+
+        float dynamicWidth = dynamicHeight * mainCam.aspect;
+        // -------------------------------------------------------------
+
+        float pieceWidth = dynamicWidth / cols;
+        float pieceHeight = dynamicHeight / rows;
+
+        float startX = -dynamicWidth / 2f + pieceWidth / 2f;
+        float startY = -dynamicHeight / 2f + pieceHeight / 2f;
 
         int tilePixelWidth = photo.width / cols;
         int tilePixelHeight = photo.height / rows;
@@ -36,7 +53,6 @@ public class PuzzleGenerator : MonoBehaviour
         int borderThicknessX = Mathf.Max(1, Mathf.RoundToInt(tilePixelWidth * borderSizePercent));
         int borderThicknessY = Mathf.Max(1, Mathf.RoundToInt(tilePixelHeight * borderSizePercent));
 
-        // เก็บตำแหน่งที่ถูกต้องเอาไว้สุ่ม
         List<Vector3> correctPositions = new List<Vector3>();
 
         for (int row = 0; row < rows; row++)
@@ -47,23 +63,20 @@ public class PuzzleGenerator : MonoBehaviour
                 piece.name = $"Piece_{row}_{col}";
                 piece.transform.SetParent(puzzleBoard3D);
 
-                // คำนวณตำแหน่งที่ถูกต้อง
+                // --- ส่วนที่แก้ไข: ให้จิ๊กซอว์สร้างที่ Z=0 เสมอ ---
                 float posX = startX + (col * pieceWidth);
                 float posY = startY + (row * pieceHeight);
-                Vector3 correctPos = new Vector3(posX, posY, 0);
+                Vector3 correctPos = new Vector3(posX, posY, 0f); // แก้กลับมาเป็น 0f
 
                 piece.transform.localPosition = correctPos;
-                correctPositions.Add(correctPos); // จำตำแหน่งเป้าหมายไว้ใน List
+                correctPositions.Add(correctPos);
 
                 piece.transform.localScale = new Vector3(pieceWidth, pieceHeight, 1);
 
-                // --- 1. ใส่ Collider เพื่อให้คลิกได้ ---
-                // (Quad มี MeshCollider มาให้ แต่สลับมาใช้ BoxCollider จะเสถียรกว่าสำหรับการคลิก)
                 Destroy(piece.GetComponent<MeshCollider>());
                 BoxCollider box = piece.AddComponent<BoxCollider>();
                 box.size = new Vector3(1, 1, 0.1f);
 
-                // --- 2. ใส่สคริปต์ PuzzlePiece และบอกว่าตำแหน่งที่ถูกต้องคือตรงไหน ---
                 PuzzlePiece puzzleScript = piece.AddComponent<PuzzlePiece>();
                 puzzleScript.correctPosition = correctPos;
 
@@ -92,13 +105,11 @@ public class PuzzleGenerator : MonoBehaviour
             }
         }
 
-        // --- 3. ระบบสุ่มตำแหน่ง (Shuffle) ---
         ShufflePuzzle(correctPositions);
     }
 
     private void ShufflePuzzle(List<Vector3> positions)
     {
-        // อัลกอริทึมสลับตำแหน่ง (Fisher-Yates Shuffle)
         for (int i = 0; i < positions.Count; i++)
         {
             Vector3 temp = positions[i];
@@ -107,7 +118,6 @@ public class PuzzleGenerator : MonoBehaviour
             positions[randomIndex] = temp;
         }
 
-        // จับตำแหน่งที่ถูกสุ่มแล้ว ยัดกลับเข้าไปในแต่ละชิ้นส่วน
         int index = 0;
         foreach (Transform child in puzzleBoard3D)
         {
