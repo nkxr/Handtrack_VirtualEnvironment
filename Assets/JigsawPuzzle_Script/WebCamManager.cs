@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class WebCamManager : MonoBehaviour
@@ -11,30 +11,28 @@ public class WebCamManager : MonoBehaviour
     [Header("Scripts & Settings")]
     public PuzzleGenerator puzzleGenerator;
 
-    private WebCamTexture webCamTexture;
+    // เดิมใช้ WebCamTexture เปิดกล้องตรงๆ แต่เปิดพร้อมกับ Python (ที่ทำ hand tracking
+    // อยู่บนกล้องตัวเดียวกัน) ไม่ได้ เลยเปลี่ยนมารับภาพผ่าน TCP จาก main_jigsaw.py แทน
+    private WebcamStreamReceiver streamReceiver;
 
     // เพิ่มตัวแปรดักการแคปเจอร์ไว้ตรงนี้ (ระดับ Class)
     private bool isCaptured = false;
 
-    void Start()
+    void Awake()
     {
-        webCamTexture = new WebCamTexture();
-        if (camDisplay != null)
-        {
-            camDisplay.texture = webCamTexture;
-        }
-        webCamTexture.Play();
-
-        if (croppedDisplay != null) croppedDisplay.gameObject.SetActive(false);
+        streamReceiver = GetComponent<WebcamStreamReceiver>();
+        if (streamReceiver == null)
+            streamReceiver = gameObject.AddComponent<WebcamStreamReceiver>();
     }
 
-    void OnDestroy()
+    void Start()
     {
-        if (webCamTexture != null)
+        if (camDisplay != null)
         {
-            webCamTexture.Stop(); // สั่งหยุดส่งสัญญาณกล้อง
-            Debug.Log("กล้องถูกปิดการใช้งานเพื่อเตรียมเริ่มใหม่");
+            camDisplay.texture = streamReceiver.CurrentFrame;
         }
+
+        if (croppedDisplay != null) croppedDisplay.gameObject.SetActive(false);
     }
 
     void Update()
@@ -50,12 +48,14 @@ public class WebCamManager : MonoBehaviour
         // 1. ดักไว้เลยว่าถ้าเคยแคปภาพไปแล้ว (isCaptured == true) ให้เด้งออกทันที ไม่ทำโค้ดด้านล่างต่อ
         if (isCaptured) return;
 
-        // 2. เช็คว่ากล้องพร้อมทำงานไหม
-        if (webCamTexture == null || !webCamTexture.isPlaying) return;
+        // 2. เช็คว่ามีภาพจากฝั่ง Python เข้ามาแล้วหรือยัง
+        if (streamReceiver == null || !streamReceiver.HasFrame) return;
 
-        // 3. แคปภาพเต็มจอจากกล้อง ณ วินาทีนั้นไว้ทำ Background
-        Texture2D fullPhoto = new Texture2D(webCamTexture.width, webCamTexture.height);
-        fullPhoto.SetPixels(webCamTexture.GetPixels());
+        Texture2D liveFrame = streamReceiver.CurrentFrame;
+
+        // 3. แคปภาพเต็มจอจากภาพที่รับมา ณ วินาทีนั้นไว้ทำ Background
+        Texture2D fullPhoto = new Texture2D(liveFrame.width, liveFrame.height);
+        fullPhoto.SetPixels(liveFrame.GetPixels());
         fullPhoto.Apply();
 
         // 4. บันทึกสถานะว่า "แคปภาพแล้ว" เพื่อที่พอกด Spacebar ครั้งหน้า ระบบจะเด้งออกที่บรรทัดบนสุดทันที
@@ -67,14 +67,14 @@ public class WebCamManager : MonoBehaviour
         // 5. คำนวณพิกัดเพื่อ Crop ภาพเฉพาะตรงกลางกรอบ CropFrame
         RectTransform camRect = camDisplay.GetComponent<RectTransform>();
 
-        float scaleX = (float)webCamTexture.width / camRect.rect.width;
-        float scaleY = (float)webCamTexture.height / camRect.rect.height;
+        float scaleX = (float)liveFrame.width / camRect.rect.width;
+        float scaleY = (float)liveFrame.height / camRect.rect.height;
 
         int cropWidth = Mathf.RoundToInt(cropFrame.rect.width * scaleX);
         int cropHeight = Mathf.RoundToInt(cropFrame.rect.height * scaleY);
 
-        int startX = Mathf.RoundToInt((webCamTexture.width - cropWidth) / 2f);
-        int startY = Mathf.RoundToInt((webCamTexture.height - cropHeight) / 2f);
+        int startX = Mathf.RoundToInt((liveFrame.width - cropWidth) / 2f);
+        int startY = Mathf.RoundToInt((liveFrame.height - cropHeight) / 2f);
 
         // ดึงพิกเซลเดิมออกมาก่อน
         Color[] originalPixels = fullPhoto.GetPixels(startX, startY, cropWidth, cropHeight);
