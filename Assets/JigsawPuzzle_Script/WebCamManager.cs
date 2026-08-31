@@ -61,8 +61,20 @@ public class WebCamManager : MonoBehaviour
         // 4. บันทึกสถานะว่า "แคปภาพแล้ว" เพื่อที่พอกด Spacebar ครั้งหน้า ระบบจะเด้งออกที่บรรทัดบนสุดทันที
         isCaptured = true;
 
-        // ซ่อนเฉพาะกรอบเล็งเขียวๆ ออกไป
-        if (cropFrame != null) cropFrame.gameObject.SetActive(false);
+        // ==========================================
+        // 1. สั่งหยุดการทำงานของสคริปต์ CropAreaController (เพื่อไม่ให้มันแอบเปิดกรอบเขียวกลับมาอีก)
+        if (camDisplay != null)
+        {
+            MonoBehaviour cropController = camDisplay.GetComponent("CropAreaController") as MonoBehaviour;
+            if (cropController != null) cropController.enabled = false;
+        }
+
+        // 2. ซ่อนเฉพาะกรอบเล็งเขียวๆ ออกไป (คราวนี้ภาพกล้องยังอยู่ และกรอบหายชัวร์ครับ)
+        if (cropFrame != null)
+        {
+            cropFrame.gameObject.SetActive(false);
+        }
+        // ==========================================
 
         // 5. คำนวณพิกัดเพื่อ Crop ภาพเฉพาะตรงกลางกรอบ CropFrame
         RectTransform camRect = camDisplay.GetComponent<RectTransform>();
