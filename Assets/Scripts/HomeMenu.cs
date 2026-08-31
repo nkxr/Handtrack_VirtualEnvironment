@@ -13,6 +13,7 @@ public class HomeMenu : MonoBehaviour
     public string puzzleSceneName = "tah";
     public string flappySceneName = "birb";
     public string handTestSceneName = "SampleScene";
+    public string touchGrassSceneName = "TouchGrass3D";
 
     void Awake()
     {
@@ -45,25 +46,28 @@ public class HomeMenu : MonoBehaviour
         canvasGO.AddComponent<GraphicRaycaster>();
 
         CreateLabel(canvasGO.transform, "Title", "Hand Tracking Virtual Environment",
-            new Vector2(0, 260), new Vector2(900, 90), 44, FontStyles.Bold);
+            new Vector2(0, 290), new Vector2(900, 90), 44, FontStyles.Bold);
 
         CreateLabel(canvasGO.transform, "Subtitle", "Choose a mode",
-            new Vector2(0, 190), new Vector2(900, 50), 22, FontStyles.Normal);
+            new Vector2(0, 220), new Vector2(900, 50), 22, FontStyles.Normal);
 
-        CreateButton(canvasGO.transform, "Puzzle (Jigsaw)", new Vector2(0, 90),
+        CreateButton(canvasGO.transform, "Puzzle (Jigsaw)", new Vector2(0, 130),
             () => SceneNavigator.GoToScene(puzzleSceneName));
 
-        CreateButton(canvasGO.transform, "Flappy Bird", new Vector2(0, 10),
+        CreateButton(canvasGO.transform, "Flappy Bird", new Vector2(0, 55),
             () => SceneNavigator.GoToScene(flappySceneName));
 
-        CreateButton(canvasGO.transform, "Hand Tracking Test", new Vector2(0, -70),
+        CreateButton(canvasGO.transform, "Touch Grass 3D", new Vector2(0, -20),
+            () => SceneNavigator.GoToScene(touchGrassSceneName));
+
+        CreateButton(canvasGO.transform, "Hand Tracking Test", new Vector2(0, -95),
             () => SceneNavigator.GoToScene(handTestSceneName));
 
-        CreateButton(canvasGO.transform, "Exit", new Vector2(0, -180),
+        CreateButton(canvasGO.transform, "Exit", new Vector2(0, -200),
             () => SceneNavigator.QuitApp(), new Color(0.55f, 0.12f, 0.12f, 0.95f));
 
         CreateLabel(canvasGO.transform, "Hint", "Press ESC anytime in-game to come back here",
-            new Vector2(0, -280), new Vector2(900, 40), 16, FontStyles.Italic);
+            new Vector2(0, -300), new Vector2(900, 40), 16, FontStyles.Italic);
     }
 
     void CreateLabel(Transform parent, string name, string text, Vector2 pos, Vector2 size, int fontSize, FontStyles style)
