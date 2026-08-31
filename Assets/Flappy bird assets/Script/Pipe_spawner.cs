@@ -9,7 +9,7 @@ public class Pipe_spawner : MonoBehaviour
     [SerializeField] private float MaxY = -2f;
 
     private float distanceSinceLastSpawn;
-    private bool spawningPaused;
+    private bool spawningPaused = true;
     private int pipesSpawnedThisWave;
 
     public void ResetSpawnTimer()

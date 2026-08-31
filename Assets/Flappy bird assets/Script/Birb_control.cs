@@ -37,6 +37,33 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void FixedUpdate()
+    {
+        if (gamemanager_flappy.instance == null || !gamemanager_flappy.instance.ShouldClampIdleFlight)
+            return;
+
+        float minY = gamemanager_flappy.instance.IdleMinY;
+        float maxY = gamemanager_flappy.instance.IdleMaxY;
+        Vector2 pos = rb.position;
+        Vector2 vel = rb.velocity;
+
+        if (pos.y > maxY)
+        {
+            pos.y = maxY;
+            if (vel.y > 0f)
+                vel.y = 0f;
+        }
+        else if (pos.y < minY)
+        {
+            pos.y = minY;
+            if (vel.y < 0f)
+                vel.y = 0f;
+        }
+
+        rb.position = pos;
+        rb.velocity = vel;
+    }
+
     private void Jump()
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
