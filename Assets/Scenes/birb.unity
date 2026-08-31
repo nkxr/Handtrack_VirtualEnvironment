@@ -2483,8 +2483,8 @@ MonoBehaviour:
   gameOverText: {fileID: 1430020054}
   player: {fileID: 501454012}
   Pipe_spawner: {fileID: 206810707}
-  defaultPipeSpeed: 5
-  pipeSpacing: 8
+  defaultPipeSpeed: 4
+  pipeSpacing: 10
   scorePerDifficultyBump: 10
   pipeSpeedMultiplier: 1.5
   difficultyPauseDuration: 1
