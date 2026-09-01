@@ -93,6 +93,8 @@ public class GrassGroundDent : MonoBehaviour
         Texture2D tex = Resources.Load<Texture2D>("Textures/GrassGround");
         Material mat = TouchGrassSceneController.CreateMaterial(false);
         if (tex != null) mat.mainTexture = tex;
+        // ต้องวาดก่อนใบหญ้าเสมอ (queue ต่ำกว่า) เหมือนพื้นหลัก ไม่งั้นจะทับใบหญ้าจนมองไม่เห็น
+        mat.renderQueue = TouchGrassSceneController.GroundRenderQueue;
         mr.sharedMaterial = mat;
     }
 

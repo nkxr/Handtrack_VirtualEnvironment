@@ -99,7 +99,7 @@ public class PuzzleGenerator : MonoBehaviour
                 tileTexture.SetPixels(pixels);
                 tileTexture.Apply();
 
-                Material mat = new Material(Shader.Find("Unlit/Texture"));
+                Material mat = new Material(FindTileShader());
                 mat.mainTexture = tileTexture;
                 piece.GetComponent<Renderer>().material = mat;
             }
@@ -124,5 +124,29 @@ public class PuzzleGenerator : MonoBehaviour
             child.localPosition = positions[index];
             index++;
         }
+    }
+
+    /// <summary>
+    /// เดิมใช้ Shader.Find("Unlit/Texture") ตรงๆ ซึ่งทำงานได้ปกติใน Editor แต่พอ build เป็น .exe จริง
+    /// Unity จะตัด (strip) เชดเดอร์ตัวนี้ออกจากไฟล์ build เพราะไม่มี Material asset ไหนในโปรเจกต์อ้างอิง
+    /// มันไว้ตรงๆ (มันถูกสร้างเป็น Material ใหม่ตอน runtime เท่านั้น) — พอ Shader.Find คืนค่า null ในตอน
+    /// build, Unity จะเปลี่ยนไปใช้ "Hidden/InternalErrorShader" แทนอัตโนมัติ ซึ่งหน้าตาคือสี่เหลี่ยม
+    /// สีม่วง/ชมพูเข้มนั่นเอง (ตรงกับอาการที่เจอ: ปกติดีใน Editor แต่บึ้นม่วงเฉพาะตอน build)
+    ///
+    /// รอบแรกลองแก้เป็น URP Unlit/Lit ก่อน แต่ยังบึ้นม่วงเหมือนเดิม — เพราะโปรเจกต์นี้ไม่มี Material
+    /// asset ไหนใช้เชดเดอร์ URP เลยจริงๆ (ทุกอย่างเป็น Sprite/TMP/UI ล้วน) เชดเดอร์ URP เลย "โดน strip
+    /// เหมือนกัน" ไม่ต่างจาก Unlit/Texture ตัวเดิม จึงเปลี่ยนมาใช้ Sprites/Default เป็นตัวแรกแทน เพราะ
+    /// พิสูจน์ได้ชัดเจนว่าไม่โดน strip แน่ๆ — นกกับท่อใน Flappy Bird scene เดียวกันนี้ที่ build แล้ว
+    /// แสดงผลได้ปกติ ก็ใช้เชดเดอร์กลุ่มนี้อยู่แล้ว
+    /// </summary>
+    private static Shader FindTileShader()
+    {
+        Shader shader = Shader.Find("Sprites/Default");
+        if (shader == null) shader = Shader.Find("UI/Default");
+        if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null) shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null) shader = Shader.Find("Unlit/Texture");
+        if (shader == null) shader = Shader.Find("Standard");
+        return shader;
     }
 }

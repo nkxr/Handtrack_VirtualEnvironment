@@ -34,7 +34,13 @@ public class HandCursorController : MonoBehaviour
               "เมื่อกำมือ ทำให้เคอร์เซอร์เลื่อนหนีจากจุดที่ตั้งใจไว้ตอนกำลังจะกำ")]
     public int pointerLandmarkIndex = 0;
 
+    [Header("กันมือหลุด (debounce ตอนปล่อยเมาส์)")]
+    [Tooltip("ท่ามือต้องไม่ใช่ 'fist' ต่อเนื่องนานเท่านี้ (วินาที) ก่อนจะปล่อยปุ่มเมาส์จริง — กันปัญหา " +
+              "การตรวจจับมือกระตุกหลุดเป็นเสี้ยววินาทีระหว่างกำลังลาก ทำให้ครอบภาพ/ลากติดๆ ขัดๆ")]
+    public float releaseGraceSeconds = 0.15f;
+
     bool mouseIsDown;
+    float notFistTimer;
 
     #region Win32
     [DllImport("user32.dll")]
@@ -49,6 +55,9 @@ public class HandCursorController : MonoBehaviour
     [DllImport("user32.dll")]
     static extern bool ClientToScreen(IntPtr hWnd, ref POINT lpPoint);
 
+    [DllImport("user32.dll")]
+    static extern bool SetProcessDPIAware();
+
     [StructLayout(LayoutKind.Sequential)]
     struct RECT { public int Left, Top, Right, Bottom; }
 
@@ -58,6 +67,22 @@ public class HandCursorController : MonoBehaviour
     const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
     const uint MOUSEEVENTF_LEFTUP = 0x0004;
     #endregion
+
+    static bool dpiAwarenessSet;
+
+    void Awake()
+    {
+        // แก้บั๊ก "เคอร์เซอร์อยู่จุดนี้ แต่ดันไปคลิกอีกจุด" — ถ้า Windows ตั้งค่า Display Scaling ไว้ไม่ใช่
+        // 100% (เช่น 125%/150%) และโปรเซสเกมไม่ได้ประกาศตัวว่า "DPI-aware" กับ Windows ไว้ Windows จะ
+        // แปลงพิกัดที่เราส่งให้ GetClientRect/SetCursorPos ไม่ตรงกันเอง (ตัวหนึ่งเป็นพิกัด logical
+        // อีกตัวเป็น physical) ทำให้ตำแหน่งที่มองเห็นกับตำแหน่งที่คลิกจริงเพี้ยนกัน ต้องเรียกอันนี้ครั้ง
+        // เดียวตอนเริ่มเพื่อบอก Windows ว่าเราจัดการพิกัดเองแบบ physical pixel ทั้งหมด
+        if (!dpiAwarenessSet)
+        {
+            SetProcessDPIAware();
+            dpiAwarenessSet = true;
+        }
+    }
 
     void Update()
     {
@@ -106,17 +131,29 @@ public class HandCursorController : MonoBehaviour
 
     void UpdateClickState(string gesture)
     {
-        bool shouldBeDown = gesture == "fist";
+        bool isFist = gesture == "fist";
 
-        if (shouldBeDown && !mouseIsDown)
+        if (isFist)
         {
-            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
-            mouseIsDown = true;
+            notFistTimer = 0f;
+            if (!mouseIsDown)
+            {
+                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
+                mouseIsDown = true;
+            }
+            return;
         }
-        else if (!shouldBeDown && mouseIsDown)
+
+        // ไม่ใช่ fist แล้ว แต่ยังไม่ปล่อยทันที — รอดูก่อนว่าเป็นการหลุดตรวจจับแค่เสี้ยววินาที
+        // (นิ้วบัง/แสงกระพริบ/หมุนมือเร็ว) หรือผู้เล่นตั้งใจแบมือจริงๆ
+        if (mouseIsDown)
         {
-            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
-            mouseIsDown = false;
+            notFistTimer += Time.deltaTime;
+            if (notFistTimer >= releaseGraceSeconds)
+            {
+                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+                mouseIsDown = false;
+            }
         }
     }
 
@@ -127,6 +164,7 @@ public class HandCursorController : MonoBehaviour
             mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
             mouseIsDown = false;
         }
+        notFistTimer = 0f;
     }
 
     void OnDisable() => ReleaseMouseIfHeld();
